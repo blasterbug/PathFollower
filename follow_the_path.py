@@ -5,9 +5,9 @@ Studio 4 via the Lokarria http interface.
 Author: Erik Billing (billing@cs.umu.se)
 
 Updated by Ola Ringdahl 204-09-11
-Follow the path below
+    Follow the path below
 """
-import httplib, json, time
+import httplib, json, time, sys
 from math import sin,cos,pi,atan2
 
 MRDS_URL = 'localhost:50000'
@@ -105,16 +105,32 @@ def qmult(q1,q2):
     q["Y"]=q1["W"]*q2["Y"]-q1["X"]*q2["Z"]+q1["Y"]*q2["W"]+q1["Z"]*q2["X"]
     q["Z"]=q1["W"]*q2["Z"]+q1["X"]*q2["Y"]-q1["Y"]*q2["X"]+q1["Z"]*q2["W"]
     return q
-    
+
+# stands instead of getHeading()
 def getBearing():
     """Returns the XY Orientation as a bearing unit vector"""
     return bearing(getPose()['Pose']['Orientation'])
     
     
 """
-	Follow a given path in a JSON file and command a robot throught MRDS to follow it.
-	Author: Benjamin Sientzoff (ens15bsf@cs.umu.se)
+    Follow a given path in a JSON file and command a robot throught MRDS to follow it.
+    Author: Benjamin Sientzoff (ens15bsf@cs.umu.se)
 """
 
-if __name__ == '__main__':
+def computePath( pathStep ):
+    return 0
 
+if __name__ == '__main__':
+    # get path file
+    try:
+        # load the path
+        path = json.load( open( sys.argv[1] ) )
+        # for each path point
+        for point in path:
+            # extrait point coordinates
+            nextPosition = point['Pose']['Position']
+            print "Goal position :", nextPosition['X'],",",nextPosition['Y']
+            # compute next command 
+    # catch except and print an error message if no given path file
+    except IndexError :
+        sys.stderr.write( "Give a filename for load a path" )
