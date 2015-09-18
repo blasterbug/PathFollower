@@ -117,20 +117,58 @@ def getBearing():
     Author: Benjamin Sientzoff (ens15bsf@cs.umu.se)
 """
 
-def computePath( pathStep ):
-    return 0
+DEFAULT_LIMEAR_SPEED = 0.5
+
+class FlippedOver(Exception): pass
+
+# compute robot commands for the next path point
+# use 'follow the carrot' algorithm
+def followTheCarrot( pathStep, robotPosition ):
+    # get robit bearing
+    rbtBearing = getBearing()
+    rbdtBearingAngle = atan2( rbtBearing['Y'], rbtBearing['X'] )
+    # compute distance(?) from robot to carrot
+    point = {}
+    point['X'] = pathStep['X'] - robotPosition['X']
+    point['Y'] = pathStep['Y'] - robotPosition['Y']
+    # convert the carrot's coordinates to the robot's coordinates
+    carrot = {}
+    carrot['X'] = point['X'] * cos( rbdtBearingAngle ) + point['Y'] * sin( rbdtBearingAngle )
+    carrot['Y'] = - point['X'] * sin( rbdtBearingAngle ) + point['Y'] * cos( rbdtBearingAngle )
+    # calculate the distance
+    # distance = pow(carrot['X'],2) + pow(carrot['Y'],2)
+    # compute radius
+    radius = pow(carrot['X'],2) + pow(carrot['Y'],2) / ( 2 * carrot['Y'] )
+    # compute curvature
+    curvature = 1/radius
+    speed = {}
+    speed['linear'] = DEFAULT_LIMEAR_SPEED
+    speed['angular'] = speed['linear'] * curvature
+    return speed
 
 if __name__ == '__main__':
     # get path file
     try:
         # load the path
         path = json.load( open( sys.argv[1] ) )
+        print path
         # for each path point
         for point in path:
             # extrait point coordinates
             nextPosition = point['Pose']['Position']
             print "Goal position :", nextPosition['X'],",",nextPosition['Y']
-            # compute next command 
+            # get robot position
+            rbtPosition = getPose()['Pose']['Position']
+            # compute next command
+            speed = followTheCarrot( nextPosition, rbtPosition )
+            print "speed : ", speed
+            postSpeed( speed['angular'], speed['linear'] )
+            # detect robot flipped over
+            if rbtPosition['Z'] < 0:
+                postSpeed( 0, 0 )
+                raise FlippedOver()
+            time.sleep(1)
+        postSpeed( 0, 0 )
     # catch except and print an error message if no given path file
     except IndexError :
         sys.stderr.write( "Give a filename for load a path" )
