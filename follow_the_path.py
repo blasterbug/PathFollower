@@ -170,7 +170,7 @@ if __name__ == '__main__':
     try:
         # load the path
         path = json.load( open( sys.argv[1] ) )
-        #print path
+        print json.dumps( path, sort_keys=True, indent=4, separators=( ',', ': ' ) )
         # for each path point
         for point in path:
             # extrait point coordinates
@@ -189,9 +189,14 @@ if __name__ == '__main__':
             time.sleep(3)
             # stop the robot
         postSpeed( 0, 0 )
-    # catch except and print an error message if no given path file
+    # catch except and display an error message if : 
+    except IOError :
+        # bad file nane is given
+        sys.stderr.write( sys.argv[1] + " no such file" )
     except IndexError :
+        # no given path file
         sys.stderr.write( "Give a filename to load a path" )
     except FlippedOver :
-        postSpeed( 0, 0 )
+        postSpeed( 0, 0 ) # stop the robot
+        # robot flipped over
         sys.stderr.write( "Robot flipped over" )
