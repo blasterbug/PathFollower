@@ -117,7 +117,7 @@ def getBearing():
     Author: Benjamin Sientzoff (ens15bsf@cs.umu.se)
 """
 
-DEFAULT_LIMEAR_SPEED = 0.3
+DEFAULT_LIMEAR_SPEED = 0.5
 
 class FlippedOver(Exception): pass
 
