@@ -117,7 +117,7 @@ def getBearing():
     Author: Benjamin Sientzoff (ens15bsf@cs.umu.se)
 """
 
-DEFAULT_LIMEAR_SPEED = 0.5
+DEFAULT_LIMEAR_SPEED = 0.3
 
 class FlippedOver(Exception): pass
 
@@ -140,24 +140,24 @@ def getInclino():
   compute robot commands for the next path point
   use 'follow the carrot' algorithm
 """
-def followTheCarrot( pathStep, robotPosition ):
-    # get robit bearing
-    rbtBearing = getPose()['Pose']['Orientation']
-    #rbtBearing = getBearing()
-    # something is wrong!
-    # rbdtBearingAngle = atan2( rbtBearing['Y'], rbtBearing['X'] )
+def followTheCarrot( pathStep, robotPose):
+    rbtBearing = robotPose['Orientation']
+    rbdtBearingAngle = atan2( 
+        2 * ( rbtBearing['W'] * rbtBearing['Z'] + rbtBearing['Y'] * rbtBearing['Z'] ), 
+        1 - 2 * ( pow( rbtBearing['Y'], 2 ) + pow( rbtBearing['Z'], 2 ) )
+    )
     # compute distance(?) from robot to carrot
     point = {}
-    point['X'] = pathStep['X'] - robotPosition['X']
-    point['Y'] = pathStep['Y'] - robotPosition['Y']
+    point['X'] = pathStep['X'] - robotPose['Position']['X']
+    point['Y'] = pathStep['Y'] - robotPose['Position']['Y']
     # convert the carrot's coordinates to the robot's coordinates
     carrot = {}
-    carrot['X'] = point['X'] * cos( rbtBearing['W'] ) + point['Y'] * sin( rbtBearing['W'] )
-    carrot['Y'] = - point['X'] * sin( rbtBearing['W'] ) + point['Y'] * cos( rbtBearing['W'] )
+    carrot['X'] = point['X'] * cos( rbdtBearingAngle ) + point['Y'] * sin( rbdtBearingAngle )
+    carrot['Y'] = - point['X'] * sin( rbdtBearingAngle ) + point['Y'] * cos( rbdtBearingAngle )
     # calculate the distance
     # distance = pow(carrot['X'],2) + pow(carrot['Y'],2)
     # compute radius
-    radius = pow(carrot['X'],2) + pow(carrot['Y'],2) / ( 2 * carrot['Y'] )
+    radius = pow( carrot['X'], 2 ) + pow( carrot['Y'], 2 ) / ( 2 * carrot['Y'] )
     # compute curvature
     curvature = 1/radius
     speed = {}
@@ -170,24 +170,28 @@ if __name__ == '__main__':
     try:
         # load the path
         path = json.load( open( sys.argv[1] ) )
-        print path
+        #print path
         # for each path point
         for point in path:
             # extrait point coordinates
             nextPosition = point['Pose']['Position']
             print "Goal position :", nextPosition['X'],",",nextPosition['Y']
             # get robot position
-            rbtPosition = getPose()['Pose']['Position']
+            rbtPose = getPose()['Pose']
+            print "Robot position :", nextPosition['X'],",",nextPosition['Y']
             # compute next command
-            speed = followTheCarrot( nextPosition, rbtPosition )
+            speed = followTheCarrot( nextPosition, rbtPose )
             print "speed : ", speed
             postSpeed( speed['angular'], speed['linear'] )
             # detect robot flipped over
-            if rbtPosition['Z'] < 0:
-                postSpeed( 0, 0 )
+            if rbtPose['Position']['Z'] < 0:
                 raise FlippedOver()
-            time.sleep(1)
+            time.sleep(3)
+            # stop the robot
         postSpeed( 0, 0 )
     # catch except and print an error message if no given path file
     except IndexError :
-        sys.stderr.write( "Give a filename for load a path" )
+        sys.stderr.write( "Give a filename to load a path" )
+    except FlippedOver :
+        postSpeed( 0, 0 )
+        sys.stderr.write( "Robot flipped over" )
