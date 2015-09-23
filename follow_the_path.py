@@ -121,20 +121,39 @@ DEFAULT_LIMEAR_SPEED = 0.5
 
 class FlippedOver(Exception): pass
 
-# compute robot commands for the next path point
-# use 'follow the carrot' algorithm
+"""
+  get robot inclination
+"""
+def getInclino():
+    """Reads the current position and orientation from the MRDS"""
+    mrds = httplib.HTTPConnection(MRDS_URL)
+    mrds.request('GET','/lokarria/inclinometer')
+    response = mrds.getresponse()
+    if (response.status == 200):
+        poseData = response.read()
+        response.close()
+        return json.loads(poseData)
+    else:
+        return UnexpectedResponse(response)
+
+"""
+  compute robot commands for the next path point
+  use 'follow the carrot' algorithm
+"""
 def followTheCarrot( pathStep, robotPosition ):
     # get robit bearing
-    rbtBearing = getBearing()
-    rbdtBearingAngle = atan2( rbtBearing['Y'], rbtBearing['X'] )
+    rbtBearing = getPose()['Pose']['Orientation']
+    #rbtBearing = getBearing()
+    # something is wrong!
+    # rbdtBearingAngle = atan2( rbtBearing['Y'], rbtBearing['X'] )
     # compute distance(?) from robot to carrot
     point = {}
     point['X'] = pathStep['X'] - robotPosition['X']
     point['Y'] = pathStep['Y'] - robotPosition['Y']
     # convert the carrot's coordinates to the robot's coordinates
     carrot = {}
-    carrot['X'] = point['X'] * cos( rbdtBearingAngle ) + point['Y'] * sin( rbdtBearingAngle )
-    carrot['Y'] = - point['X'] * sin( rbdtBearingAngle ) + point['Y'] * cos( rbdtBearingAngle )
+    carrot['X'] = point['X'] * cos( rbtBearing['W'] ) + point['Y'] * sin( rbtBearing['W'] )
+    carrot['Y'] = - point['X'] * sin( rbtBearing['W'] ) + point['Y'] * cos( rbtBearing['W'] )
     # calculate the distance
     # distance = pow(carrot['X'],2) + pow(carrot['Y'],2)
     # compute radius
