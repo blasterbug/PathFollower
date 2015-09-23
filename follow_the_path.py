@@ -171,23 +171,27 @@ if __name__ == '__main__':
         # load the path
         path = json.load( open( sys.argv[1] ) )
         print json.dumps( path, sort_keys=True, indent=4, separators=( ',', ': ' ) )
+        rbtPose = getPose()['Pose']
         # for each path point
         for point in path:
             # extrait point coordinates
             nextPosition = point['Pose']['Position']
             print "Goal position :", nextPosition['X'],",",nextPosition['Y']
-            # get robot position
-            rbtPose = getPose()['Pose']
-            print "Robot position :", nextPosition['X'],",",nextPosition['Y']
-            # compute next command
-            speed = followTheCarrot( nextPosition, rbtPose )
-            print "speed : ", speed
-            postSpeed( speed['angular'], speed['linear'] )
-            # detect robot flipped over
-            if rbtPose['Position']['Z'] < 0:
-                raise FlippedOver()
-            time.sleep(3)
-            # stop the robot
+            while( rbtPose['Position']['X'] != nextPosition['X'] 
+                   and rbtPose['Position']['Y'] != nextPosition['Y']
+                   ):
+                # get robot position
+                rbtPose = getPose()['Pose']
+                print "Robot position :", nextPosition['X'],",",nextPosition['Y']
+                # compute next command
+                speed = followTheCarrot( nextPosition, rbtPose )
+                print "speed : ", speed
+                postSpeed( speed['angular'], speed['linear'] )
+                # detect robot flipped over
+                if rbtPose['Position']['Z'] < 0:sasadsa
+                    raise FlippedOver()
+            #time.sleep(3)
+        # stop the robot
         postSpeed( 0, 0 )
     # catch except and display an error message if : 
     except IOError :
