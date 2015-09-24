@@ -8,7 +8,7 @@ Updated by Ola Ringdahl 204-09-11
     Follow the path below
 """
 import httplib, json, time, sys
-from math import sin,cos,pi,atan2
+from math import sin, cos, pi, atan2, sqrt
 
 MRDS_URL = 'localhost:50000'
 
@@ -146,7 +146,7 @@ def followTheCarrot( pathStep, robotPose):
         2 * ( rbtBearing['W'] * rbtBearing['Z'] + rbtBearing['Y'] * rbtBearing['Z'] ), 
         1 - 2 * ( pow( rbtBearing['Y'], 2 ) + pow( rbtBearing['Z'], 2 ) )
     )
-    # compute distance(?) from robot to carrot
+    # compute distance from robot to carrot
     point = {}
     point['X'] = pathStep['X'] - robotPose['Position']['X']
     point['Y'] = pathStep['Y'] - robotPose['Position']['Y']
@@ -154,8 +154,8 @@ def followTheCarrot( pathStep, robotPose):
     carrot = {}
     carrot['X'] = point['X'] * cos( rbdtBearingAngle ) + point['Y'] * sin( rbdtBearingAngle )
     carrot['Y'] = - point['X'] * sin( rbdtBearingAngle ) + point['Y'] * cos( rbdtBearingAngle )
-    # calculate the distance
-    # distance = pow(carrot['X'],2) + pow(carrot['Y'],2)
+    # calculate the distance between the robot and the carrot
+    distance = sqrt( pow( point['X'], 2 ) + pow( point['Y'], 2 ) ) 
     # compute radius
     radius = pow( carrot['X'], 2 ) + pow( carrot['Y'], 2 ) / ( 2 * carrot['Y'] )
     # compute curvature
@@ -177,8 +177,8 @@ if __name__ == '__main__':
             # extrait point coordinates
             nextPosition = point['Pose']['Position']
             print "Goal position :", nextPosition['X'],",",nextPosition['Y']
-            while( rbtPose['Position']['X'] != nextPosition['X'] 
-                   and rbtPose['Position']['Y'] != nextPosition['Y']
+            while( ( rbtPose['Position']['X'] != nextPosition['X'] )
+                   and ( rbtPose['Position']['Y'] != nextPosition['Y'] )
                    ):
                 # get robot position
                 rbtPose = getPose()['Pose']
@@ -188,7 +188,7 @@ if __name__ == '__main__':
                 print "speed : ", speed
                 postSpeed( speed['angular'], speed['linear'] )
                 # detect robot flipped over
-                if rbtPose['Position']['Z'] < 0:sasadsa
+                if rbtPose['Position']['Z'] < 0:
                     raise FlippedOver()
             #time.sleep(3)
         # stop the robot
