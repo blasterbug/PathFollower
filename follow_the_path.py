@@ -137,24 +137,27 @@ def getInclino():
 """
   compute robot commands for the next path point
   use 'follow the carrot' algorithm
+  @param carrot Point to reach
+  @param robotPose Robot collection storing robot position and orientation
 """
 def speedsToReach( carrot, robotPose ) :
-    speeds = {}
     rbtBearing = robotPose['Orientation']
-    rbdtBearingAngle = atan2( 
+    # robot steering from Quaternion
+    angleRobot = atan2( 
         2 * ( rbtBearing['W'] * rbtBearing['Z'] + rbtBearing['Y'] * rbtBearing['Z'] ), 
         1 - 2 * ( pow( rbtBearing['Y'], 2 ) + pow( rbtBearing['Z'], 2 ) )
     )
-    # compute distance from robot to carrot
+    # compute distance between the robot and the carrot
     distanceCarrot = {}
     distanceCarrot['X'] = carrot['X'] - robotPose['Position']['X']
     distanceCarrot['Y'] = carrot['Y'] - robotPose['Position']['Y']
     distance = sqrt( pow( distanceCarrot['X'], 2 ) + pow( distanceCarrot['Y'], 2 ) )
     # compute the angle to the carrot
-    angleCarrot = atan2( robotPose['Position']['X'] - carrot['X'], robotPose['Position']['Y'] - carrot['Y'] )
+    angleCarrot = atan2( carrot['X'] - robotPose['Position']['X'] , carrot['Y'] -robotPose['Position']['Y'] )
     # compute angular speed
-    speeds['angular'] = angleCarrot / 1
-    speeds['linear'] = speeds['angular'] * ( distance / ( 2 * sin( angleCarrot ) ) )
+    speeds = {}
+    speeds['angular'] = ( ( angleCarrot - angleRobot ) / 1 ) *1.2
+    speeds['linear'] = ( speeds['angular'] * ( distance / ( 2 * sin( angleCarrot ) ) ) ) * 1.2
     return speeds
 
 if __name__ == '__main__':
@@ -162,28 +165,29 @@ if __name__ == '__main__':
     try:
         # load the path
         path = json.load( open( sys.argv[1] ) )
-        print json.dumps( path, sort_keys=True, indent=4, separators=( ',', ': ' ) )
+        print json.dumps( path, sort_keys=True, indent=2, separators=( ',', ': ' ) )
         rbtPose = getPose()['Pose']
-        # for each path point
+        # for each point of the path
         for point in path :
             # extrait point coordinates
             nextPosition = point['Pose']['Position']
             print "Goal position :", nextPosition['X'],",",nextPosition['Y']
+            """
             while( ( rbtPose['Position']['X'] != nextPosition['X'] )
                    and ( rbtPose['Position']['Y'] != nextPosition['Y'] )
                    ):
-                # get robot position
-                rbtPose = getPose()['Pose']
-                print "Robot position :", rbtPose['Position']['X'], ",", rbtPose['Position']['Y'], ", ", rbtPose['Position']['Z']
-                # compute next command
-                speed = speedsToReach( nextPosition, rbtPose )
-                print "speed : ", speed
-                postSpeed( speed['angular'], speed['linear'] )
-                # detect robot flipped over
-                # don't work
-                if rbtPose['Position']['Z'] < 0 :
-                    raise FlippedOver()
-                time.sleep( 1 )
+            """
+            # get robot position
+            rbtPose = getPose()['Pose']
+            print "Robot position :", rbtPose['Position']['X'], ",", rbtPose['Position']['Y'], ", ", rbtPose['Position']['Z']
+            # compute next command
+            speed = speedsToReach( nextPosition, rbtPose )
+            print "speed : ", json.dumps( speed, sort_keys=True, indent=2, separators=( ',', ': ' ) )
+            postSpeed( speed['angular'], speed['linear'] )
+            # detect robot flipped over, does it work ?
+            if rbtPose['Position']['Z'] < 0 :
+                raise FlippedOver()
+            time.sleep( 1 )
         # stop the robot
         postSpeed( 0, 0 )
     # catch except and display an error message if : 
