@@ -153,11 +153,11 @@ def speedsToReach( carrot, robotPose ) :
     distanceCarrot['Y'] = carrot['Y'] - robotPose['Position']['Y']
     distance = sqrt( pow( distanceCarrot['X'], 2 ) + pow( distanceCarrot['Y'], 2 ) )
     # compute the angle to the carrot
-    angleCarrot = atan2( carrot['X'] - robotPose['Position']['X'] , carrot['Y'] -robotPose['Position']['Y'] )
+    angleCarrot = atan2( carrot['Y'] - robotPose['Position']['Y'], carrot['X'] - robotPose['Position']['X'] )
     # compute angular speed
     speeds = {}
-    speeds['angular'] = ( ( angleCarrot - angleRobot ) / 1 ) *1.2
-    speeds['linear'] = ( speeds['angular'] * ( distance / ( 2 * sin( angleCarrot ) ) ) ) * 1.2
+    speeds['angular'] = ( ( angleCarrot - angleRobot ) / 1 )
+    speeds['linear'] = ( speeds['angular'] * ( distance / ( 2 * sin( angleCarrot ) ) ) )
     return speeds
 
 if __name__ == '__main__':
