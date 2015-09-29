@@ -160,7 +160,7 @@ def speedsToReach( carrot, robotPose ) :
     angleCarrot = atan2( carrot['Y'] - robotPose['Position']['Y'], carrot['X'] - robotPose['Position']['X'] )
     angleToCarrot = angleCarrot - angleRobot
     if pi < angleToCarrot :
-        angleToCarrot *= pi
+        angleToCarrot += pi
     print "angle: ", angleToCarrot
     # compute angular speed
     speeds = {}
@@ -188,7 +188,7 @@ if __name__ == '__main__':
             rbtPose = getPose()['Pose']
             print "Robot position: ", rbtPose['Position']['X'], ",", rbtPose['Position']['Y'], ", ", rbtPose['Position']['Z']
             # if the next point to reach is quite away
-            if 0.4 < computeDistance( rbtPose['Position'], nextPosition ):
+            if 0.5 < computeDistance( rbtPose['Position'], nextPosition ):
                 # compute speed
                 speed = speedsToReach( nextPosition, rbtPose )
                 print "speed: ", json.dumps( speed, sort_keys=True, indent=2, separators=( ',', ': ' ) )
