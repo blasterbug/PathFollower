@@ -167,12 +167,12 @@ def speedsToReach( carrot, robotPose ) :
     # print "angle: ", angleToCarrot
     # compute angular speed
     speeds = {}
-    speeds['angular'] = ( angleToCarrot ) / 1
+    speeds['angular'] = ( angleToCarrot ) / 0.6
     speeds['linear'] = ( speeds['angular'] * ( distanceCarrot / ( 2 * sin( angleToCarrot ) ) ) )
-    if 0.4 < speeds['linear'] :
-        speeds['linear'] = 0.4
-    if -0.4 > speeds['linear'] :
-        speeds['linear'] = -0.4
+    if 0.6 < speeds['linear'] :
+        speeds['linear'] = 0.6
+    if -0.6 > speeds['linear'] :
+        speeds['linear'] = -0.6
     return speeds
 
 if __name__ == '__main__':
