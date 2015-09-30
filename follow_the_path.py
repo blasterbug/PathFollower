@@ -119,6 +119,9 @@ def getBearing():
 
 class FlippedOver(Exception): pass
 
+lookAheadDistance = 1.2
+thresholdPrecision = 0.4
+
 """
   get robot inclination
 """
@@ -155,21 +158,21 @@ def speedsToReach( carrot, robotPose ) :
     angleRobot = atan2( getBearing()['Y'], getBearing()['X'] )
     # compute distance between the robot and the carrot
     distanceCarrot = computeDistance( carrot, robotPose['Position'] )
-    print "distance: ", distanceCarrot
+    # print "distance: ", distanceCarrot
     # compute the angle to the carrot
     angleCarrot = atan2( carrot['Y'] - robotPose['Position']['Y'], carrot['X'] - robotPose['Position']['X'] )
     angleToCarrot = angleCarrot - angleRobot
-    if pi < angleToCarrot :
-        angleToCarrot += pi
-    print "angle: ", angleToCarrot
+    if -pi > angleToCarrot :
+       angleToCarrot = angleToCarrot + ( 2 * pi )
+    # print "angle: ", angleToCarrot
     # compute angular speed
     speeds = {}
     speeds['angular'] = ( angleToCarrot ) / 1
     speeds['linear'] = ( speeds['angular'] * ( distanceCarrot / ( 2 * sin( angleToCarrot ) ) ) )
-    if 0.6 < speeds['linear'] :
-        speeds['linear'] = 0.5
-    if -0.6 > speeds['linear'] :
-        speeds['linear'] = -0.5
+    if 0.4 < speeds['linear'] :
+        speeds['linear'] = 0.4
+    if -0.4 > speeds['linear'] :
+        speeds['linear'] = -0.4
     return speeds
 
 if __name__ == '__main__':
@@ -177,41 +180,48 @@ if __name__ == '__main__':
     try:
         # load the path
         path = json.load( open( sys.argv[1] ) )
-        print json.dumps( path, sort_keys=True, indent=2, separators=( ',', ': ' ) )
+        #print "Path :", json.dumps( path, sort_keys=True, indent=2, separators=( ',', ': ' ) )
         rbtPose = getPose()['Pose']
+        # start the timer
+        startTime = time.time()
         # for each point of the path
         for point in path :
             # extrait point coordinates
             nextPosition = point['Pose']['Position']
-            print "Goal position: ", nextPosition['X'],",",nextPosition['Y']
+            print "Goal position: ", json.dumps( nextPosition, sort_keys=True, indent=2, separators=( ',', ': ' ) )
             # get robot position
             rbtPose = getPose()['Pose']
-            print "Robot position: ", rbtPose['Position']['X'], ",", rbtPose['Position']['Y'], ", ", rbtPose['Position']['Z']
+            print "Robot position :", json.dumps( rbtPose['Position'], sort_keys=True, indent=2, separators=( ',', ': ' ) )
             # if the next point to reach is quite away
-            if 0.5 < computeDistance( rbtPose['Position'], nextPosition ):
+            if lookAheadDistance < computeDistance( rbtPose['Position'], nextPosition ):
                 # compute speed
-                speed = speedsToReach( nextPosition, rbtPose )
-                print "speed: ", json.dumps( speed, sort_keys=True, indent=2, separators=( ',', ': ' ) )
+                speeds = speedsToReach( nextPosition, rbtPose )
+                print "speeds :", json.dumps( speeds, sort_keys=True, indent=2, separators=( ',', ': ' ) )
                 # send the speed to the robot
-                postSpeed( speed['angular'], speed['linear'] )
+                postSpeed( speeds['angular'], speeds['linear'] )
                 # while the point is not reached
-                while 0.05 < computeDistance( rbtPose['Position'], nextPosition ):
+                while thresholdPrecision < computeDistance( rbtPose['Position'], nextPosition ):
                     rbtPose = getPose()['Pose']
                     # compute speed
-                    speed = speedsToReach( nextPosition, rbtPose )
+                    speeds = speedsToReach( nextPosition, rbtPose )
+                    print "speeds :", json.dumps( speeds, sort_keys=True, indent=2, separators=( ',', ': ' ) )
                     # send the speed to the robot
-                    postSpeed( speed['angular'], speed['linear'] )
+                    postSpeed( speeds['angular'], speeds['linear'] )
                     time.sleep( 0.5 )
             # detect robot flipped over, does it work ?
             if rbtPose['Position']['Z'] < 0 :
                 raise FlippedOver()
         # stop the robot
         postSpeed( 0, 0 )
+        endTime = time.time()
+        print endTime - startTime, "Seconds to follow the path"
+    except FlippedOver :
+        postSpeed( 0, 0 ) # stop the robot
+        # robot flipped over
+        sys.stderr.write( "Robot flipped over" )    
     # catch except and display an error message if : 
     except IndexError :
         # no given path file
         sys.stderr.write( "Give a filename to load a path" )
-    except FlippedOver :
-        postSpeed( 0, 0 ) # stop the robot
-        # robot flipped over
-        sys.stderr.write( "Robot flipped over" )
+    except err :
+        sys.stderr.write( "?!" )
