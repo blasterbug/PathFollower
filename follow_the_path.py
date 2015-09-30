@@ -112,21 +112,12 @@ def getBearing():
     return bearing(getPose()['Pose']['Orientation'])
     
     
-"""
-    Follow a given path in a JSON file and command a robot throught MRDS to follow it.
-    Author: Benjamin Sientzoff (ens15bsf@cs.umu.se)
-"""
-
-class FlippedOver(Exception): pass
-
-lookAheadDistance = 1.2
-thresholdPrecision = 0.4
 
 """
   get robot inclination
 """
 def getInclino():
-    """Reads the current position and orientation from the MRDS"""
+    """Reads the current inclino and orientation from the MRDS"""
     mrds = httplib.HTTPConnection(MRDS_URL)
     mrds.request('GET','/lokarria/inclinometer')
     response = mrds.getresponse()
@@ -137,6 +128,20 @@ def getInclino():
     else:
         return UnexpectedResponse(response)
     
+    
+"""
+    Follow a given path in a JSON file and command a robot throught MRDS to follow it.
+    Author: Benjamin Sientzoff (ens15bsf@cs.umu.se)
+"""
+
+class FlippedOver(Exception): pass
+
+lookAheadDistance = 1.2
+thresholdPrecision = 0.5
+maxLinearSpeed = 0.5
+# angular speed basically
+radPerSec = 0.6
+
 """
   Compute the distqnce betwwen two points
   @param pointA coordinates of the first point
@@ -163,16 +168,18 @@ def speedsToReach( carrot, robotPose ) :
     angleCarrot = atan2( carrot['Y'] - robotPose['Position']['Y'], carrot['X'] - robotPose['Position']['X'] )
     angleToCarrot = angleCarrot - angleRobot
     if -pi > angleToCarrot :
-       angleToCarrot = angleToCarrot + ( 2 * pi )
+      angleToCarrot = ( 2 * pi ) + angleToCarrot
+    if pi < angleToCarrot :
+          angleToCarrot = ( 2 * pi ) - angleToCarrot
     # print "angle: ", angleToCarrot
     # compute angular speed
     speeds = {}
-    speeds['angular'] = ( angleToCarrot ) / 0.6
+    speeds['angular'] = ( angleToCarrot ) / radPerSec
     speeds['linear'] = ( speeds['angular'] * ( distanceCarrot / ( 2 * sin( angleToCarrot ) ) ) )
-    if 0.6 < speeds['linear'] :
-        speeds['linear'] = 0.6
-    if -0.6 > speeds['linear'] :
-        speeds['linear'] = -0.6
+    if maxLinearSpeed < speeds['linear'] :
+        speeds['linear'] = maxLinearSpeed
+    if -maxLinearSpeed > speeds['linear'] :
+        speeds['linear'] = -maxLinearSpeed
     return speeds
 
 if __name__ == '__main__':
