@@ -178,6 +178,7 @@ def speedsToReach( carrot, robotPose ) :
   speeds = {}
   speeds['angular'] = ( angleToCarrot ) / radPerSec
   speeds['linear'] = ( speeds['angular'] * ( distanceCarrot / ( 2 * sin( angleToCarrot ) ) ) )
+  
   if maxLinearSpeed < speeds['linear'] :
     speeds['linear'] = maxLinearSpeed
   if -maxLinearSpeed > speeds['linear'] :

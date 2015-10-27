@@ -1,0 +1,123 @@
+\documentclass[10pt,a4paper,oneside,notitlepage]{article}
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary {positioning,fit}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{ucs}
+\usepackage{makeidx}
+\usepackage{cite}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{ifpdf}
+\usepackage[title,titletoc,toc]{appendix}
+
+\usepackage[english]{babel}
+
+\author{Benjamin Sientzoff}
+\title{\textbf{5DV121} \\ Assignment 1 \\ Follow the path}
+
+% info PDF
+\ifpdf
+\hypersetup{
+    colorlinks=true,
+    unicode=true,
+    pdfauthor={Benjamin Sientzoff (ens15bsf)},
+    pdftitle={5DV121 - Assignment 1 : Follow the path}
+}
+\fi
+
+\def\inst{Computer Science}
+\def\typeofdoc{Assignment report (resubmitted)}
+\def\course{5DV121}
+\def\pretitle{~}
+\def\title{Follow the path}
+\def\benj{Benjamin Sientzoff}
+\def\userbenj{ens15bsf}
+\def\emailbenj{\userbenj{}@cs.umu.se}
+\def\path{edu/5dv121/lab1/}
+%\def\run{python faces.py training-file.txt training-facit.txt test-file.txt}
+\def\graders{Thomas Johansson, Adam Dahlgren}
+
+
+\def\fullpath{\raisebox{1pt}{$\scriptstyle \sim$}\userbenj/\path}
+
+\makeindex
+
+\begin{document}
+
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+\definecolor{mygreen}{rgb}{0,0.6,0}
+
+\lstset{
+    language=Python,
+    basicstyle=\small\ttfamily,
+    breaklines=true,
+    showtabs=false,
+    showspaces=false,
+    breakatwhitespace=true,
+    tabsize=2,
+    keywordstyle=\bfseries\color{blue},
+    commentstyle=\color{mygreen},
+    numbers=left,
+    numbersep=5pt,
+    numberstyle=\tiny\color{gray},
+    stringstyle=\color{mymauve}
+}
+
+    \begin{titlepage}
+        \thispagestyle{empty}
+        \begin{large}
+            \begin{tabular}{@{}p{\textwidth}@{}}
+                \textbf{UMEÅ UNIVERSITY \hfill \today} \\
+                \textbf{Institution of \inst} \\
+                \textbf{\typeofdoc} \\
+            \end{tabular}
+        \end{large}
+        \vfill
+        \begin{center}
+            \LARGE{\pretitle} \\
+            \huge{\textbf{\course}}\\
+            \vspace{10mm}
+            \LARGE{\title} \\
+            \vspace{20mm}
+            \begin{large}
+                \begin{tabular}{lp{6cm}}
+                    \textbf{Name} & \benj \\
+                    \textbf{E-mail} & \emailbenj \\
+                    \textbf{Path} & \texttt{\fullpath} \\
+                \end{tabular}
+            \end{large}
+            \vfill
+            \large{\textbf{Tutors}}\\
+            \makebox[5pt]{\large{\graders}}
+        \end{center}
+    \end{titlepage}
+
+
+\tableofcontents
+
+\newpage
+
+\input{intro}
+
+\input{dev}
+
+\input{difficulties}
+
+\input{conclusion}
+
+
+\bibliography{biblio}{}
+\bibliographystyle{abbrv}
+
+\newpage
+
+\input{appendix}
+
+\end{document}
