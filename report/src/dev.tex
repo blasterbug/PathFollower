@@ -32,7 +32,7 @@
     To run the program, first open MRDS and load the simulation used for the
  assignment. Then run the program from a shell like this : \texttt{\$ python
  follow\_the\_path.py <file>}. \texttt{<file>} must be a file containing a path
- to follow for the opened simulation and formatted in JSON.s
+ to follow for the opened simulation and formatted in JSON.
 }
 
 \paragraph{Follow the carrot}{
@@ -43,7 +43,7 @@ his PhD thesis\cite{thesis:barton}. The figure \ref{algo:base} takes over
 this method.
 }
 
-\begin{figure}[!h]
+\begin{figure}[h!]
     \begin{algorithmic}
         \ForAll{point in path}
             \State $position \gets \Call{getRobotRosition}$
@@ -64,9 +64,9 @@ this method.
 
 \paragraph{Speeds computation}{
     The functions called in this algorithm already exists and are designed to
-control or to get data from the robot. But there is no way to compute the speeds,so I implemented the function \texttt{compute\_speeds} which computes
+control or to get data from the robot. But there is no way to compute the speeds. So I implemented the function \texttt{compute\_speeds} which computes
 the angular and the linear speed of the robot regarding his position and the
-target position. Only this two value are needed to move the robot around.
+targeted position. Only this two values are needed to move the robot around.
 The computation is presented figure \ref{algo:speeds}. It is essentially about
 using mathematical functions and tools.
 }
@@ -103,12 +103,12 @@ using mathematical functions and tools.
 
 \paragraph{}{
     In fact, the way I compute the speeds, and in particular the angular speed
-can be improved. Let's say the schema at figure \ref{fig:path} represents what
-the robot currently do. The straight arrow presents the steering of the
+can be improved. Let's see the schema at figure \ref{fig:path}, it represents
+what the robot currently does. The straight arrow presents the steering of the
 robot, and the other one stands for the trajectory followed currently by the
 robot. As you can notice it could be quicker and smart to turn to the other 
 way. To do so, when I compute the angle between the robot and the carrot, I
-just have to check if the angle is lower than $-\pi$ or if it is greater than $\pi$, if so, I add\/substrate $2\pi$ to the current angle. That turns the
+just have to check if the angle is lower than $-\pi$ or if it is greater than $\pi$, if so, I add~/~substrate $2\pi$ to the current angle. That turns the
 algorithm to the one at figure \ref{algo:speeds_smart}. Now the robot avoids 
 U-turns.
 }
@@ -134,7 +134,7 @@ U-turns.
     
     \caption{
         \label{algo:speeds_smart}
-        Algorithm to compute the speed to reach a target point
+        Algorithm to compute the speed to reach a target point and avoid U-turns
     }
 \end{figure}
 
@@ -145,8 +145,8 @@ U-turns.
    Now the robot can follow the path using \textit{Follow the carrot}
  \cite{thesis:barton}. The name of this method is due to the way it processes
  the path points. As you can see, each point are considered. For each point the
- algorithm computes with speeds the robot should use to reach the target point.
- and once it reached it, we repeat the process for the next point. But this
+ algorithm computes the speeds the robot should use to reach the target point.
+ Once it reached it, we repeat the process for the next point. But this
  method has a drawback. It is slow!
 }
 
@@ -191,10 +191,16 @@ U-turns.
 \paragraph{Look-ahead distance and threshold}{
     Firstly, to avoid the closest points, I define a look-ahead distance in the
  program. Basically, it is a imaginary circle around the robot. Every points
- (except if it is the last one), in this distance are ignored. That makes the
+ (except if it is the last one), in this area are ignored. That makes the
  robot trajectories more smooth. Then, The robot do not have to sharply come by
  by each targeted point. So, I define a threshold which is the minimum distance
- the robot has to reach before trying to reach another one. Now the obtain the
+ the robot has to reach before trying to reach another one. Now we obtain the
  algorithm figure \ref{algo:v2}.
+}
+
+\paragraph{}{
+    This last algorithm is the one used by the robot. It allows the robot to
+ be faster than before and makes his moves more smooth and more 
+ \textit{natural}.
 }
 
