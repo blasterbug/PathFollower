@@ -1,11 +1,43 @@
-% specification
-% run the program
 
 \section{Following paths}
 
+% specification
+\paragraph{Specification}{
+    Basically, the program should respect the rules below, extract from the assignment wording itself.
+    \begin{itemize}
+        \item Implement a program that interacts with the Kompai robot in MRDS.
+        This involves implementing functions for reading the robot's sensors
+        and controlling the robot's actuators.
+        
+        \item Implement a controller that enables the robot to follow a
+        specified path given as a sequence of coordinates. Small divergences
+        from the specified path are allowed, but the controller must be able to
+        steer the robot back onto the path when divergences from the path occur.
+        
+        \item The controller must be able to successfully track a few test
+        paths, without hitting walls and other obstacles. You may use these
+        paths as examples, or record your own (see below).
+        
+        \item The program should include some means of displaying the time
+        taken from start to finish. The start is defined as the moment the
+        robot starts moving, and finish is defined as the moment the robot is
+        within 1 meter of the last point in the path.
+    \end{itemize}
+
+}
+
+% run the program
+
+\paragraph{Run the program}{
+    To run the program, first open MRDS and load the simulation used for the
+ assignment. Then run the program from a shell like this : \texttt{\$ python
+ follow\_the\_path.py <file>}. \texttt{<file>} must be a file containing a path
+ to follow for the opened simulation and formatted in JSON.s
+}
+
 \paragraph{Follow the carrot}{
-    There are several ways to make a robot following a trajectory. For the
-assignment, as it is suggested, I decided to implement the algorithm
+    There are several ways to make a robot following a given path. For this
+assignment, as it was suggested, I decided to implement the algorithm
 \textit{follow the carrot}. This simple algorithm is presented by Barton in
 his PhD thesis\cite{thesis:barton}. The figure \ref{algo:base} takes over
 this method.
@@ -17,10 +49,11 @@ this method.
             \State $position \gets \Call{getRobotRosition}$
             \While{$position \neq point$}
                 \State $speeds \gets \Call{compute\_speeds(position, point)}$
-                \State $setSpeeds( speeds )$
+                \State $\Call{setSpeeds}{speeds}$
                 \State $position \gets \Call{getRobotRosition}$
             \EndWhile
         \EndFor
+        \State $\Call{setSpeeds}{\{0, 0\}}$
     \end{algorithmic}
     
     \caption{
@@ -31,11 +64,11 @@ this method.
 
 \paragraph{Speeds computation}{
     The functions called in this algorithm already exists and are designed to
-control or to get the robot position. But there no way to compute the speeds, so
-I implemented the function \texttt{compute\_speeds} which computes the angular 
-and the linear speed of the robot regarding his position and the target position.
-This function is presented figure \ref{algo:speeds}. It is essentially about
-using mathematical functions and it works.
+control or to get data from the robot. But there is no way to compute the speeds,so I implemented the function \texttt{compute\_speeds} which computes
+the angular and the linear speed of the robot regarding his position and the
+target position. Only this two value are needed to move the robot around.
+The computation is presented figure \ref{algo:speeds}. It is essentially about
+using mathematical functions and tools.
 }
 
 \begin{figure}[!h]
@@ -43,7 +76,7 @@ using mathematical functions and it works.
      \Function{compute\_speeds}{robot, carrot}
         \State $distance \gets \sqrt{(carrot.x - robot.x)^{2} + (carrot.y - robot.y)^{2}}$
         \State $robot\_angle \gets \Call{getRobotSteering}$
-        \State $carrot\_angle \gets atan2(carrot.y - robot.x, carrot.x - robot.x)$
+        \State $carrot\_angle \gets \Call{atan2}{carrot.y - robot.x, carrot.x - robot.x}$
         \State $angle = carrot\_angle - robot\_angle$
         \State $angular\_speed = angle / 1$
         \State $linear\_speed \gets angular\_speed \times \frac{distance}{2 \times sin( angle )} $
@@ -69,7 +102,15 @@ using mathematical functions and it works.
 \end{figure}
 
 \paragraph{}{
-    In fact, the way I compute the speeds, and in particular the angular speed can be improved. Let's say the schema at figure \ref{fig:path} represents what the robot currently do. The straight arrow representes the steering of the robot, and the other one stqnds for the trajectory the follows currently. As you can notice it could be quicker ans smart to turn to the other way. To do, when I compute the angle between the robot and the carrot, I just have to check if the angle is lower than $-\pi$ or if it is greater than $\pi$, if so, I add\/substract in the first case $2\pi$. That turns the algoirthms to the one at figure \ref{algo:speeds_smart}.
+    In fact, the way I compute the speeds, and in particular the angular speed
+can be improved. Let's say the schema at figure \ref{fig:path} represents what
+the robot currently do. The straight arrow presents the steering of the
+robot, and the other one stands for the trajectory followed currently by the
+robot. As you can notice it could be quicker and smart to turn to the other 
+way. To do so, when I compute the angle between the robot and the carrot, I
+just have to check if the angle is lower than $-\pi$ or if it is greater than $\pi$, if so, I add\/substrate $2\pi$ to the current angle. That turns the
+algorithm to the one at figure \ref{algo:speeds_smart}. Now the robot avoids 
+U-turns.
 }
 
 \begin{figure}[!h]
@@ -77,7 +118,7 @@ using mathematical functions and it works.
      \Function{compute\_speeds}{robot, carrot}
         \State $distance \gets \sqrt{(carrot.x - robot.x)^{2} + (carrot.y - robot.y)^{2}}$
         \State $robot\_angle \gets \Call{getRobotSteering}$
-        \State $carrot\_angle \gets atan2(carrot.y - robot.x, carrot.x - robot.x)$
+        \State $carrot\_angle \gets \Call{atan2}{carrot.y - robot.x, carrot.x - robot.x}$
         \State $angle = carrot\_angle - robot\_angle$
         \If{ $-\pi > angle$ }
             \State $ angle \gets 2\pi + angle $
@@ -101,26 +142,59 @@ using mathematical functions and it works.
 }
 
 \paragraph{}{
-    To makes the robot following the path, I decided to implement the
-algorithm called \textit{Follow the carrot}\cite{thesis:barton}. His name is
-due to the way it processes the path points. Each point are considered. 
-For each point the algorithm computes the angle to turn to reach the carrot
-point and the distance between the robot and the carrot point. Once the
-angle and the distance are computed, I can compute a linear and an angular
-speed to move the robot. The algorithm is very simple but is not efficient.
-In fact, many points can be skipped. So in order to improve the robot speed,
-the first step was to skip some point by adding a look-ahead distance to the
-algorithm. Rather than trying to reach each point, the robot tries to reach
-the next carrot point in the look-ahead distance.
+   Now the robot can follow the path using \textit{Follow the carrot}
+ \cite{thesis:barton}. The name of this method is due to the way it processes
+ the path points. As you can see, each point are considered. For each point the
+ algorithm computes with speeds the robot should use to reach the target point.
+ and once it reached it, we repeat the process for the next point. But this
+ method has a drawback. It is slow!
 }
 
 \paragraph{}{
-    The next improvement made was to change how the algorithm used the
-points. The first version considers every point (or at least the ones in the
-look-ahead distance) and wait one second before considering the next points.
-But the this amount of time is totally arbitrary. So, to be more precis and
-don't wait too much time or too less time, the algorithm waits till the robot
-reach the point before considering the next one:
+    Considering each single point of the path is a waste. In fact, trying to
+ reach each of them takes a while. And increasing the computed speeds by the
+ program is not the right solution because it makes the robot too fast and it
+ misses the targeted position: The robot became unstable. So, let's thinking
+ about something more \textit{intelligent}, skipping some points. \newline
+ The point of the path are very closed, so trying to reach all of them it's
+ certainly not the right thing. Skipping \textit{some} points has many
+ advantages. Firstly, less point means less computation. It is not critical  
+ here, but still it is never a bad thing while the outputs are correct. Then, by
+ skipping points, the robot will target points which are more away and so the
+ computed speeds will be higher. Then, the path used by the robot is more
+ smooth. Finally, the robot is quicker. But how to do it ?
 }
 
-% improv
+\begin{figure}[!h]
+    \begin{algorithmic}
+        \ForAll{point in path}
+            \State $position \gets \Call{getRobotRosition}$
+            \State $distance \gets \sqrt{(point.x - robot.x)^{2} + (point.y - robot.y)^{2}}$
+            \If{$distance < lookahead$}
+                \While{$distance > threshold$}
+                    \State $speeds \gets \Call{compute\_speeds(position, point)}$
+                    \State $\Call{setSpeeds}{speeds}$
+                    \State $position \gets \Call{getRobotRosition}$
+                    \State $distance \gets \sqrt{(point.x - robot.x)^{2} + (point.y - robot.y)^{2}}$
+                \EndWhile
+            \EndIf
+        \EndFor
+        \State $\Call{setSpeeds}{\{ 0, 0\}}$
+    \end{algorithmic}
+    
+    \caption{
+        \label{algo:v2}
+        \textit{Follow the carrot} modified algorithm
+    }
+\end{figure}
+
+\paragraph{Look-ahead distance and threshold}{
+    Firstly, to avoid the closest points, I define a look-ahead distance in the
+ program. Basically, it is a imaginary circle around the robot. Every points
+ (except if it is the last one), in this distance are ignored. That makes the
+ robot trajectories more smooth. Then, The robot do not have to sharply come by
+ by each targeted point. So, I define a threshold which is the minimum distance
+ the robot has to reach before trying to reach another one. Now the obtain the
+ algorithm figure \ref{algo:v2}.
+}
+
