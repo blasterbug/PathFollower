@@ -233,5 +233,3 @@ if __name__ == '__main__':
   except IndexError :
     # no given path file
     sys.stderr.write( "Give a filename to load a path" )
-  except err :
-    sys.stderr.write( "?!" )
